@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: youtube-url-trim
-expected_outcome: |
-  Downloads only the first 9 seconds with yt-dlp (or reports a network block honestly), converts it to monochrome ASCII and exports a web-friendly format (an HTML player or JSON text frames) with a reduced-motion fallback.

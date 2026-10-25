@@ -93,3 +93,31 @@ From the session that produced this skill, kept here because they generalise:
 - **Lengthen a loop** by repeating whole cycles (e.g. walk strides in pairs) rather than slowing the frame rate. 80 ms frames (12.5 fps) look smooth in ASCII; fewer frames make it choppy.
 - **Ramps:** the detailed ramp (` dbkhao*#MW&8%B@$`) gives the dense ezascii look; the default (` .:-=+*#%@`) is lighter and better for monochrome.
 - **Iterate on contact sheets, not full renders**, and change one thing at a time when the user critiques a specific body part or motion.
+
+## 6. Grow the evals from usage
+
+This skill's tests come from how it's actually used, not from guesses. Whenever one of these moments happens, record an eval case so future versions of the skill are checked against it:
+
+| Moment | Example | What to record |
+|---|---|---|
+| **Critique** | "her arms flail too much", "the loop jumps", "too big for my README" | A regression case: the original request, its inputs, the rejected output as `--bad`, and the critique turned into a check |
+| **Approval** | "perfect", "ship it" | The approved output as `--good`, so later versions can be compared blind against it |
+| **A/B pick** | the user chose B | The choice and the reason they gave, so the preference is tested, not just remembered |
+| **Failure** | a download failed, a script crashed, you needed a workaround | What happened and the correct behaviour (e.g. "reports the firewall block and asks for approval") |
+
+```bash
+uv run ${CLAUDE_SKILL_DIR}/scripts/record_eval.py --name walk-arms-close --source critique \
+  --prompt "<the user's original request>" --input clip.mp4 --bad out_v1.gif --note "<what they said, verbatim>" \
+  --expect "During the walk, the figure's arms swing close to the body; no frame shows an arm raised above shoulder height" \
+  --check "*.gif: --max-mb 10 --seam-max 0.1"
+```
+
+How to write the checks:
+- **Generalise one step.** Describe the class of problem, not the single frame. "Arms flail at frame 23" won't catch the same mistake in a different motion; "during a walk the arms swing close to the body" will.
+- **Use code for anything measurable.** File size, frame count, seam, equal rows and reduced motion go in `--check`, which `scripts/check_output.py` grades with no judgement call. Put only what needs eyes in `--expect`, phrased so a grader can say yes or no from the contact sheet.
+- **A check has to tell good from bad.** Pass the approved and rejected outputs as `--good`/`--bad`; `record_eval.py` runs every `--check` against both and warns when it can't tell them apart. That means the critique is about taste: move it to `--expect`.
+- **Phrase each check as the user's standard, not your fix.** Write "the loop has no visible jump", not "used --pingpong".
+
+Recording runs locally into `~/.claude/skill-evals/ascii-animation/` (override with `$ASCII_ANIMATION_EVALS`) and copies the input files there. Tell the user in one line that you recorded a case and what it checks. If they say not to, stop recording for the rest of the session. `record_eval.py --list` shows what has been collected.
+
+The skill also ships a small **baseline** in `evals/`: rules that hold for every user (export limits, no invented output, cheap fixes before the large download, two candidates for a description, loop seams). Usage cases add the rules specific to how this user works. `evals/README.md` explains how to run either set.

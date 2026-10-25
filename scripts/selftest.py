@@ -8,7 +8,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import numpy as np
 import imageio_ffmpeg
-import ascii_render as ar, video2ascii, frames2ascii, ab_compare
+import ascii_render as ar, video2ascii, frames2ascii, ab_compare, check_output, record_eval
 
 def run(mod, *args):
     """Runs mod.main(args); returns (exit code, stdout)."""
@@ -104,6 +104,32 @@ def main():
         code, o = run(ab_compare, P("a.gif"), P("small.gif"), "-o", P("ab.html"), "--labels", "LBLONE,LBLTWO", "--seed", "3")
         m = json.loads(o)
         assert sorted(m.values()) == ["LBLONE", "LBLTWO"] and "LBL" not in open(P("ab.html")).read(); ok(f"ab_compare {m}")
+        # usage-born evals: record a case, re-record appends, check_output grades by code
+        store = P("evals-store")
+        base = ["--name", "dance-too-small", "--source", "critique", "--prompt", "make my clip ascii", "--store", store]
+        code, o = run(record_eval, *base, "--input", P("clip.mp4"), "--expect", "the dancer fills the frame", "--check", "*.gif: --max-mb 10", "--good", P("a.gif"), "--note", "too tiny")
+        c = o.strip(); assert code == 0 and c == os.path.join(store, "dance-too-small"), (code, o)
+        pm = open(c + "/prompt.md").read().split("\n")
+        assert pm[0] == "---" and pm[5] == "---" and all(any(l.startswith(k + ":") for l in pm[1:5]) for k in ("tags", "max_turns", "timeout_seconds", "allowed_tools")) and pm[-2] == "Input files: clip.mp4", pm
+        y = open(c + "/case.yaml").read(); assert 'schema_version: "1.1"' in y and "name: dance-too-small" in y and "scaffold_script: place-files.sh" in y
+        gs = sorted(os.listdir(c + "/graders")); assert len(gs) == 2 and gs[0].startswith("01-") and open(c + "/graders/" + gs[0]).read().startswith("---\ntype: llm\nfocus: trace\nweight: 1\n---\n"), gs
+        assert "reports passed: true" in open(c + "/graders/" + gs[1]).read()
+        assert os.access(c + "/place-files.sh", os.X_OK) and os.path.exists(c + "/files/clip.mp4") and os.path.exists(c + "/refs/good.gif") and os.path.exists(c + "/refs/good.png")
+        run(record_eval, *base, "--expect", "second critique")
+        assert len(os.listdir(c + "/graders")) == 3 and "01-" in "".join(os.listdir(c + "/graders")) and len(open(store + "/index.jsonl").read().splitlines()) == 2
+        assert run(record_eval, "--name", "results", "--source", "failure", "--prompt", "x", "--store", store)[0] != 0
+        assert "dance-too-small" in run(record_eval, "--list", "--store", store)[1]; ok("record_eval: layout, append on re-record, --list")
+        err = io.StringIO()  # the same file as good and bad ref: the check can't tell them apart, so it must warn
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            record_eval.main(["--name", "same-refs", "--source", "critique", "--prompt", "p", "--store", store, "--check", "*.gif: --max-mb 10", "--good", P("a.gif"), "--bad", P("a.gif")])
+        assert "passes on the bad ref" in err.getvalue(), err.getvalue(); ok("record_eval warns on a non-discriminating check")
+        code, o = run(check_output, P("a.gif"), "--frames", "24", "--min-coverage", "0.001")
+        assert code == 0 and json.loads(o)["passed"], o
+        assert run(check_output, P("a.gif"), "--max-mb", "0.000001")[0] == 1
+        open(P("rag.json"), "w").write(json.dumps({"frames": ["ab\nc", "ab\nc"]}))
+        assert run(check_output, P("rag.json"), "--rows-equal")[0] == 1 and run(check_output, P("a.json"), "--rows-equal", "--frames", "5")[0] == 0
+        assert run(check_output, P("a.html"), "--reduced-motion")[0] == 0 and run(check_output, P("a.gif"), "--reduced-motion")[0] == 1
+        ok("check_output: pass, size fail, ragged fail, html reduced-motion")
         if os.path.exists(os.path.join(HERE, "rig.py")): rig_checks(tmp); ok("rig checks")
 
 if __name__ == "__main__": main()
