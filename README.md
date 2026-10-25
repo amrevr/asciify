@@ -7,8 +7,8 @@ A Claude Code skill that turns a video, or a description of a motion, into a loo
 Clone this repo as the skill folder:
 
 ```bash
-git clone git@github.com:amrevr/asciify.git ~/.claude/skills/asciify
-# or over HTTPS: git clone https://github.com/amrevr/asciify.git ~/.claude/skills/asciify
+git clone git@github.com:amrevr/asciify.git ~/.claude/skills/ascii-animation
+# or over HTTPS: git clone https://github.com/amrevr/asciify.git ~/.claude/skills/ascii-animation
 ```
 
 Requires [`uv`](https://docs.astral.sh/uv/). Each script declares its Python dependencies (numpy, pillow, imageio-ffmpeg), so you don't need system ffmpeg. URLs use `uv tool run yt-dlp`.
