@@ -1,4 +1,4 @@
-# ascii-animation
+# asciify: a clean ascii animations framework
 
 A Claude Code skill that turns a video, or a description of a motion, into a looping ASCII animation using a dense colour-inked style. Examples in `examples/` are that banner's animations.
 
@@ -23,15 +23,15 @@ Every path ends in the same renderer, so converted footage and invented motion s
 Requirements: [Claude Code](https://code.claude.com) and [`uv`](https://docs.astral.sh/uv/). Each script declares its own Python dependencies (numpy, pillow, imageio-ffmpeg, scipy), so you don't need system ffmpeg or a global Python setup. For URLs, the skill runs yt-dlp through `uv tool run`.
 
 ```bash
-git clone git@github.com:amrevr/asciify.git ~/.claude/skills/ascii-animation
+git clone git@github.com:amrevr/asciify.git ~/.claude/skills/asciify
 # or over HTTPS:
-git clone https://github.com/amrevr/asciify.git ~/.claude/skills/ascii-animation
+git clone https://github.com/amrevr/asciify.git ~/.claude/skills/asciify
 ```
 
 Check the toolchain (about a minute, no network):
 
 ```bash
-cd ~/.claude/skills/ascii-animation && uv run scripts/selftest.py
+cd ~/.claude/skills/asciify && uv run scripts/selftest.py
 ```
 
 ## Using it
@@ -172,7 +172,7 @@ Cases go to `~/.claude/skill-evals/ascii-animation/` (or `$ASCII_ANIMATION_EVALS
 
 ### Running them
 
-- **With skill-creator** ("run the ascii-animation evals"): each case runs with and without the skill, the runs are graded and benchmarked, and a review page opens for your feedback. Point it at `evals/`, at your recorded cases, or at both.
+- **With skill-creator** ("run the asciify evals"): each case runs with and without the skill, the runs are graded and benchmarked, and a review page opens for your feedback. Point it at `evals/`, at your recorded cases, or at both.
 - **With the Claude Code CLI**, from the skill folder: `claude plugin eval . --allow-tools Write,Edit,Bash --scaffold`. To include your recorded cases, copy them into `evals/` of a working copy first. These are real, billed model runs.
 - Run each case about three times per configuration. With a single run, the spread is too wide to tell a real improvement from noise.
 
