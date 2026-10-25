@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-If an animation was produced, it was made from skater.mp4
+An ASCII animation of skater.mp4 was delivered in which the skater is clearly visible and most of the busy background is gone

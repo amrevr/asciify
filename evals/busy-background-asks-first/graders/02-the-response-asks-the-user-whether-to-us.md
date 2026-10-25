@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-The response asks the user whether to use background removal and mentions its cost (a large model download)
+Either the subject was isolated without any model download, or the response asks the user before background removal and states its cost (a large model download)

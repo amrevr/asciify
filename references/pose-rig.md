@@ -30,7 +30,9 @@ Then `uv run ${CLAUDE_SKILL_DIR}/scripts/pose2ascii.py my_motion.py -o a.gif --s
 | `near`, `far` | 0..1 | Arms swung out (front view: both out wide). |
 | `wave`, `wph` | 0..1, phase | Right hand raised and waving. |
 | `sway`, `shim`, `htilt` | small | Hip shift, shoulder roll, head tilt (the jig uses these). |
-| `bob` | fraction of H | Vertical offset of the whole body (breathing, or small hops). |
+| `bob` | fraction of H | Vertical offset of the body. Up to 0.015 H (breathing, the twirl's rise) only the upper body moves; beyond that the legs follow and both feet leave the ground line, so `bob=0.05` is a small hop (the shadow stays on the ground, shrinks and fades). |
+| `raise_` | 0..1 | Both arms swing up through the side: 0 = the rest pose, ~0.1 hanging at the sides, 0.5 horizontal, 1 hands overhead. Front and back view. Named `raise_` because `raise` is a Python keyword. |
+| `spread` | 0..1 | Stance width: feet apart symmetrically (about two shoulder widths at 1), legs angled, hips drop a little, skirt hem widens. Pair with `raise_` and `bob` for jumping jacks. |
 | `fl`, `amp`, `travel` | from `gait` | Walk phase, walk amplitude, metres walked. |
 | `fan`, `whip`, `flare`, `hem_x`, `tail_x`, `bounce` | from `springs` | Hair and skirt dynamics. Usually leave these to `springs`. |
 | `peek` | bool | Back view with the head turned toward us (look-back). |
@@ -38,7 +40,7 @@ Then `uv run ${CLAUDE_SKILL_DIR}/scripts/pose2ascii.py my_motion.py -o a.gif --s
 Helpers: `rig.jig_at` (a ready-made dance phrase), `rig.gait(nf, walk_from, wind_from, stop_at, strides)` (ease-in walk; **use an even number of strides** so the road wraps), `rig.walk_amp`, `rig.classic_timeline(blocks)` (lengthen by whole walk blocks), `rig.SPIN_AWAY` / `rig.SPIN_BACK` (tuned spin key tables).
 
 ## What it can't do (yet)
-- Arms above the head, legs spread apart, jumps with both feet off the ground, sitting, lying down, a second person, or non-human subjects.
+- Sitting, lying down, legs crossing, one arm raised at a time (`raise_` moves both), a second person, or non-human subjects.
 - Facial features. That's deliberate: eyes looked uncanny at this size, and the user asked for them to be removed.
 
 When a request needs one of these, tell the user plainly. Then choose one of two routes:

@@ -27,5 +27,14 @@ GIF is the biggest format. In order of effectiveness:
 
 `--max-mb` automates step 1. The GIF palette is one 256-colour median-cut palette sampled from four frames, with no dithering, because dither noise flickers in ASCII.
 
+## Isolating the subject (`--key auto`)
+`--key auto` builds a median background from all frames, aligning frames first by global shift so panning shots work. It keeps pixels that differ from that background by more than `--key-thresh` (40), then keeps the largest blob plus the blobs touching it. Limits:
+- It needs a subject that moves relative to the background.
+- Parts that match the background colour can drop out (check the sheet for missing limbs; lowering `--key-thresh` usually brings them back).
+- It assumes the camera only pans; zooms and handheld rotation break it.
+- It keeps every frame in memory, so use it on short clips.
+
+If it isn't clean enough, the next step is `--segment` (rembg, ~170 MB, ask first).
+
 ## Flicker
 Video frames shimmer when a cell's luminance sits on a ramp boundary. The fixes, cheapest first: raise `--exponent`, drop `--fps` to 10–12, crop away busy backgrounds, then (only with the user's OK) `--segment`.

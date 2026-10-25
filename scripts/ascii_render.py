@@ -4,7 +4,7 @@
 # ///
 """Shared ASCII-art core, lifted from make_walk.py (the tuned look): enhance, cell averaging, glyph pick, ink scaling, draw, export.
 A grid is (chars, colours): chars (rows, cols) 1-char str with " " = empty, colours int (rows, cols, 3)."""
-import io, json, sys
+import html, io, json, sys
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -70,11 +70,15 @@ def gif_bytes(imgs, ms, pal_idx):
     q[0].save(b, "GIF", save_all=True, append_images=q[1:], duration=ms, loop=0, optimize=True)
     return b.getvalue()
 
-PLAYER = """<!doctype html><meta charset=utf-8><title>ascii</title><body style="margin:0;background:%(bg)s"><pre id=p style="margin:0;padding:8px;color:%(fg)s;font:12px/1 ui-monospace,Menlo,Consolas,monospace;white-space:pre"></pre>
-<script>const F=%(frames)s,p=document.getElementById('p');let i=0;p.textContent=F[0];
-if(!matchMedia('(prefers-reduced-motion: reduce)').matches)setInterval(()=>{i=(i+1)%%F.length;p.textContent=F[i]},%(ms)d)</script>"""
+PLAYER = """<!doctype html><meta charset=utf-8><title>ascii</title><body style="margin:0;background:%(bg)s">
+<!-- ascii-animation: paste from here -->
+<pre role="img" aria-label="%(label)s" style="margin:0;padding:8px;color:%(fg)s;font:12px/1 ui-monospace,Menlo,Consolas,monospace;white-space:pre"></pre>
+<script>(()=>{const p=document.currentScript.previousElementSibling,F=%(frames)s,q=matchMedia('(prefers-reduced-motion: reduce)');let i=0,t,vis=true;p.textContent=F[0];
+const go=()=>{clearInterval(t);if(q.matches){i=0;p.textContent=F[0]}else if(vis)t=setInterval(()=>{i=(i+1)%%F.length;p.textContent=F[i]},%(ms)d)};
+q.addEventListener('change',go);new IntersectionObserver(e=>{vis=e[0].isIntersecting;go()}).observe(p);go()})()</script>
+<!-- to here -->"""
 
-def export(grids, out_path, frame_ms=80, step=1, max_mb=None, palette_frames=None, **draw_kw):
+def export(grids, out_path, frame_ms=80, step=1, max_mb=None, palette_frames=None, label="ASCII animation", **draw_kw):
     """Write grids as .gif/.webp/.mp4/.txt/.json/.html by suffix. step keeps every Nth frame (duration x N); max_mb raises step until the gif fits."""
     out = Path(out_path)
     ext = out.suffix.lower()
@@ -116,7 +120,7 @@ def export(grids, out_path, frame_ms=80, step=1, max_mb=None, palette_frames=Non
             lit = grids[0][0] != " "
             fg = "#%02x%02x%02x" % tuple(grids[0][1][lit][0]) if lit.any() else "#e8e0d0"
             bg = "#%02x%02x%02x" % tuple(draw_kw.get("bg", (18, 14, 24)))
-            out.write_text(PLAYER % dict(bg=bg, fg=fg, frames=json.dumps(text).replace("</", "<\\/"), ms=ms))
+            out.write_text(PLAYER % dict(bg=bg, fg=fg, frames=json.dumps(text).replace("</", "<\\/"), ms=ms, label=html.escape(label)))
         else: raise ValueError(f"unknown output type {ext}")
     return out
 

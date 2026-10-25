@@ -11,7 +11,7 @@ git clone git@github.com:amrevr/asciify.git ~/.claude/skills/asciify
 # or over HTTPS: git clone https://github.com/amrevr/asciify.git ~/.claude/skills/asciify
 ```
 
-Requires [`uv`](https://docs.astral.sh/uv/). Each script declares its Python dependencies (numpy, pillow, imageio-ffmpeg), so you don't need system ffmpeg. URLs use `uvx yt-dlp`.
+Requires [`uv`](https://docs.astral.sh/uv/). Each script declares its Python dependencies (numpy, pillow, imageio-ffmpeg), so you don't need system ffmpeg. URLs use `uv tool run yt-dlp`.
 
 ## What it does
 

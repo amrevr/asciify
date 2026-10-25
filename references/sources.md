@@ -4,11 +4,11 @@
 Any format ffmpeg reads (mp4, mov, webm, mkv, animated gif). Pass the path straight to `video2ascii.py`. Use `--start`/`--dur` instead of trimming by hand; frames are read with `-ss/-t`, so nothing outside the range is decoded.
 
 ## URLs
-`video2ascii.py URL …` runs `uvx yt-dlp` into a temp dir. With `--start`/`--dur` it passes `--download-sections "*S-E"`, so only that part downloads. This matters for long videos and music-video-length uploads.
+`video2ascii.py URL …` runs `uv tool run yt-dlp` into a temp dir. With `--start`/`--dur` it passes `--download-sections "*S-E"`, so only that part downloads. This matters for long videos and music-video-length uploads.
 
 | Site | Usually works? | If not |
 |---|---|---|
-| YouTube, Vimeo, X/Twitter, Reddit, Bilibili | yes | Update yt-dlp (`uvx yt-dlp@latest`), retry once |
+| YouTube, Vimeo, X/Twitter, Reddit, Bilibili | yes | Update yt-dlp (`uv tool run yt-dlp@latest`), retry once |
 | TikTok | sometimes | Ask the user for the file |
 | Douyin (v.douyin.com, douyin.com) | rarely; needs fresh cookies | Ask the user for the file |
 | Instagram | rarely; needs login | Ask the user for the file |

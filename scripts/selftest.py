@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["numpy", "pillow", "imageio-ffmpeg"]
+# dependencies = ["numpy", "pillow", "imageio-ffmpeg", "scipy"]
 # ///
 """Offline checks for the ascii-animation scripts: uv run scripts/selftest.py"""
 import contextlib, io, json, os, subprocess, sys, tempfile
@@ -40,6 +40,23 @@ def rig_checks(tmp):
     try: rig.check_loop(rig.Timeline(rig.CLASSIC.nf - 1, rig.CLASSIC.pose_fn))
     except AssertionError: pass
     else: raise AssertionError("off-by-one timeline passed check_loop")
+    # new channels: a jumping-jack timeline built in code (no example file): raise / spread / bob cycle 0 -> 1 -> 0, two hops per loop
+    import dataclasses
+    nf = 16
+    base = rig.make_pose_fn(nf, rig.Keys({0: (180, 0, 0, 0, 0)}), np.zeros((nf + 1, 4)), [np.zeros(nf + 1)] * 3)
+    def jj(f):
+        u = 0.5 - 0.5 * np.cos(2 * np.pi * f / nf)
+        return dataclasses.replace(base(f), raise_=u, spread=u, bob=0.05 * np.sin(np.pi * (f % (nf // 2)) / (nf // 2)))
+    tl = rig.Timeline(nf, jj)
+    rig.check_loop(tl)
+    grids = [rig.frame(tl, f) for f in range(nf)]
+    ar.contact_sheet(grids, os.path.join(tmp, "jj_sheet.png"), cell=rig.CELL)
+    assert os.path.getsize(os.path.join(tmp, "jj_sheet.png")) > 0
+    assert (grids[0][0] != grids[nf // 2][0]).any(), "raise/spread=1 must differ from 0"
+    rest = rig.frame(rig.Timeline(1, lambda f: rig.Pose(loop=1)), 0)[0]
+    for k in ("raise_", "spread"):
+        g = rig.frame(rig.Timeline(1, lambda f: dataclasses.replace(rig.Pose(loop=1), **{k: 1.0})), 0)[0]
+        assert (g != rest).any(), k
 
 def main():
     with tempfile.TemporaryDirectory() as tmp:
@@ -58,10 +75,22 @@ def main():
         small = os.path.getsize(P("small.gif"))
         assert small <= big / 2 or small < big, (big, small)
         ok(f"--max-mb: {big} -> {small} bytes")
+        code, o = run(video2ascii, P("clip.mp4"), "-o", P("pp.json"), "--fps", "12", "--cols", "40", "--pingpong")
+        assert code == 0 and o.startswith("46 frames") and "seam n/a (pingpong" in o and len(json.load(open(P("pp.json")))["frames"]) == 46; ok("--pingpong 2n-2")
+        # moving disc over static random noise: median background should strip the noise, keep the disc
+        rng = np.random.default_rng(0); noise = rng.integers(0, 256, (120, 160, 3)).astype(float)
+        yy, xx = np.mgrid[:120, :160]; fr = []
+        for i in range(24):
+            f = noise.copy(); f[(xx - (20 + i * 5)) ** 2 + (yy - 60) ** 2 < 15 ** 2] = (255, 0, 0); fr.append(f)
+        ms = video2ascii.key_mask(fr, 40)
+        assert np.mean([m.mean() for m in ms]) < .25 and ms[12][60, 20 + 12 * 5] and all(m[60, 20 + i * 5] for i, m in enumerate(ms)); ok(f"--key: coverage {np.mean([m.mean() for m in ms]):.1%}, disc kept")
         g = [ar.cells_from_rgb(np.random.default_rng(i).random((30, 40, 3)) * 255, 20) for i in range(5)]
         assert ar.seam([g[0], g[1], g[0]]) == 0 and ar.seam(g) > 0; ok("seam")
         ar.export(g, P("a.html")); ar.export(g, P("a.json"), step=1)
         assert "prefers-reduced-motion" in open(P("a.html")).read(); ok("html reduced-motion")
+        h = open(P("a.html")).read()
+        assert "<!-- ascii-animation: paste from here -->" in h and "<!-- to here -->" in h and 'role="img"' in h and "addEventListener('change'" in h and "IntersectionObserver" in h
+        ok("html paste block, live reduced-motion, offscreen pause")
         d = json.load(open(P("a.json")))
         assert len(d["frames"]) == 5 and d["cols"] == 20 and d["colours"] is not None; ok("json round-trip")
         for ext in ("txt", "webp", "mp4"): ar.export(g, P("a." + ext)); assert os.path.getsize(P("a." + ext)) > 0

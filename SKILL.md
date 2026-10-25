@@ -25,14 +25,20 @@ Run every script with `uv run ${CLAUDE_SKILL_DIR}/scripts/<name>.py …`. Each d
 
 Read `references/sources.md` when the input is a URL or the user hasn't said which part to use.
 
-1. **Get the footage.** Use a local file directly. For a URL, `video2ascii.py` calls `uvx yt-dlp` and downloads only the section you ask for. Douyin, TikTok and Instagram links usually fail without the user's cookies. When that happens, ask the user to download the file and give you its path. Don't keep retrying, and never invent output from a clip you couldn't fetch.
+1. **Get the footage.** Use a local file directly. For a URL, `video2ascii.py` calls `uv tool run yt-dlp` and downloads only the section you ask for (it falls back to a full download plus a local trim if sectioning fails). When a download fails, tell the user the cause the tool output actually shows. A firewall or proxy 403 ("Approval required for …") means the user has to approve the domain. A site error means the site wants their cookies; Douyin, TikTok and Instagram usually do. Either way, offer the simplest unblock (approve the domain, or send the file), don't keep retrying, and never invent output from a clip you couldn't fetch.
 2. **Pick the clip.** Use the range the user gave ("first 9 seconds"). Otherwise choose 2–6 s around the main action and say which range you used, since short clips loop better and keep GIFs small.
 3. **Convert:**
    ```bash
    uv run ${CLAUDE_SKILL_DIR}/scripts/video2ascii.py clip.mp4 -o out.gif --start 0 --dur 9 --fps 12 --cols 120 --sheet sheet.png
    ```
    `--mono '#e8e0d0'` for single-colour text, `--mirror` to flip the facing direction, `--crop x,y,w,h` to frame the subject, `--ramp default` for a lighter, sparser look.
-4. **Background bleeding into the subject?** Background removal (`--segment`) uses rembg, which downloads a ~170 MB model. **Ask the user before using it**, every time: say what it costs and what it fixes. Pass `--i-asked-the-user` only after they say yes. Without a yes, try `--crop` and a higher `--exponent` first; those often isolate the subject well enough.
+4. **Background bleeding into the subject?** Work up a ladder of fixes, cheapest first, and stop as soon as the contact sheet looks clean:
+   1. **Run** `--crop` around the subject's path, then `--key auto`. The key keeps pixels that differ from the clip's median background, then the largest connected blob. No download is needed, and it handles busy backgrounds behind a moving subject.
+   2. Raise `--exponent` to push leftover texture toward empty cells.
+   3. Only if that still isn't clean: background removal (`--segment`). It uses rembg, which downloads a ~170 MB model, so **ask the user first**, every time. Show them the sheet from the cheap attempt, say what the download costs, and pass `--i-asked-the-user` only after a yes.
+
+   Actually run steps 1–2 before asking. The user would rather get a decent result now than answer a question you could have avoided.
+5. **Clip doesn't cycle** (a straight cut, high seam score)? `--pingpong` plays it forward then backward without repeating the turn frames, so the seam disappears. Otherwise, pick cut points where the pose matches.
 
 ## 3. Description path (A/B)
 
@@ -49,7 +55,7 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/pose2ascii.py my_motion.py -o a.gif --sheet a
 uv run ${CLAUDE_SKILL_DIR}/scripts/frames2ascii.py my_motion.txt -o b.gif --sheet b.png
 ```
 
-For a non-human subject the rig doesn't apply. Say so, make B, and offer a second B with a different style (silhouette vs outline) as the alternative.
+**Always deliver two candidates.** The comparison is the point of this path. When the rig can't do the motion (a non-human subject, or a pose outside its channels; see "What it can't do" in `pose-rig.md`), say so in one line. Then make two hand-drawn candidates in clearly different styles, such as a filled silhouette and a line drawing, and compare those instead. Don't drop to a single candidate, and don't quietly substitute a different motion.
 
 **Compare blind:**
 ```bash
@@ -71,7 +77,7 @@ Always render a contact sheet (`--sheet`) and look at it yourself before showing
 | Target | Format | Notes |
 |---|---|---|
 | GitHub README | `.gif` | Keep it under ~10 MB (`--max-mb 10` raises `--step` until it fits). Embed with `<img src="…gif" width="100%">`. |
-| Website | `.html` player, or `.json` frames for an existing component | Text stays sharp and tiny; the player shows frame 0 under `prefers-reduced-motion`. |
+| Website | `.html` player, or `.json` frames for an existing component | Text stays sharp and tiny. The page has a marked paste block (`<pre>` plus a scoped script) that follows `prefers-reduced-motion` live and pauses offscreen. Tell the user the text colour assumes a dark background. |
 | Terminal / plain text | `.txt` | Frames separated by form-feed lines. |
 | Chat / social | `.webp` or `.mp4` | Smaller than GIF at the same quality. |
 

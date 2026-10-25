@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-Cheaper isolation (cropping, exponent/threshold changes) was tried or proposed before background removal
+A cheaper isolation method (cropping, colour/background keying, exponent change) was actually run on skater.mp4 before background removal was used or asked about

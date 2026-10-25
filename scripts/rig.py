@@ -41,6 +41,7 @@ INSERT_AT, BLOCK = 36, 24      # classic_timeline() inserts BLOCK full-amplitude
 CW = LH = CELL
 W, H = COLS * CW, ROWS * LH
 RAMP_FIG = ar.RAMPS["detailed"]  # letters give the whole scene its tonal density, as in ezascii's colour mode
+BOB_BREATH = 0.015  # bob up to this (breathing) moves the upper body only; the excess lifts the feet too
 SCENE = True  # False: no night road, figure on black
 # ezascii-style colour pass (brightness, contrast, saturation, gamma, in that order) and glyph exponent
 BRIGHTNESS, CONTRAST, SATURATION, GAMMA, EXPONENT = 0, 45, 1.65, 1.2, 1.4
@@ -201,6 +202,8 @@ class Pose:
     flare: float = 0.0     # extra hem flare 0..1 (0.29 H -> 0.34 H wide) with a 5 degree tilt
     hem_x: float = 0.0     # hem lag offset, fractions of H
     bounce: float = 0.0    # vertical lag of the hair tips, signed
+    raise_: float = 0.0    # 0..1 both arms swing up through the side until the hands are overhead at 1 (field name `raise_`: raise is a keyword)
+    spread: float = 0.0    # 0..1 stance width: feet apart symmetrically (about two shoulder widths at 1), legs angled, hem widens
 
 @dataclass
 class Timeline:
@@ -413,14 +416,17 @@ def girl(X, Y, pz, L, P, hair_aux):
     paint = painter(L, P)
 
     # ---- gait and knee-dip kinematics: thigh swing, knee flexion, hip height from the planted leg ----
+    AB = pz.spread * 0.397                 # leg abduction: sin(AB) * leg length takes the ankle from 0.022 H to 0.2 H off the midline
+    lift = max(0.0, pz.bob - BOB_BREATH)   # bob beyond the breathing range lifts the feet off the ground line (a hop)
     leg = {}
     for side, ph in ((-1, fl), (1, fl + np.pi)):
         th = np.radians(19) * A * np.cos(ph) + np.radians(2) + np.radians(42) * pz.squat
         flex = np.radians(6 + A * (52 * vm(ph, 4.6, 2.5) + 8 * vm(ph, 0.35, 2.5))) + np.radians(84) * pz.squat
-        leg[side] = (th, flex, LT * np.cos(th) + LS * np.cos(th - flex) + FOOT)
-    k_plant = 0.5 + 0.5 * min(pz.squat, 1)  # in a dip both feet stay planted: the hips drop by the whole leg shortening
+        leg[side] = (th, flex, (LT * np.cos(th) + LS * np.cos(th - flex)) * np.cos(AB) + FOOT)
+    k_plant = 0.5 + 0.5 * max(min(pz.squat, 1), pz.spread)  # in a dip (or a wide stance) both feet stay planted: the hips drop by the whole leg shortening
     hip_h = k_plant * min(leg[-1][2], leg[1][2]) + (1 - k_plant) * HIP_H
     dy = -(hip_h - HIP_H) * H - pz.bob * H  # the whole upper body rides the hip height
+    hip_h += lift                          # a hop: the legs rise with the body
     walk_x = -SWAY * H * np.sin(fl)        # pelvis shifts over the planted foot
     jx = pz.sway * H                       # the jig's hip sway; the feet stay put
     hipx = walk_x + jx
@@ -442,7 +448,8 @@ def girl(X, Y, pz, L, P, hair_aux):
     bx = (cx + hipx) * (1 - wv) + shx * wv  # torso midline, hips -> shoulders
     bowx, bowy = hrx + 0.028 * H * np.cos(Yd), yy(0.05)
 
-    L[ellipse(X, Y, cx + walk_x * 0.5, G0 + 4, 80, 10) < 1] *= 0.45  # contact shadow
+    air = min(lift / 0.06, 1)
+    L[ellipse(X, Y, cx + walk_x * 0.5, G0 + 4, 80 * (1 - 0.3 * air) + 60 * pz.spread, 10) < 1] *= 0.45 + 0.55 * air  # contact shadow: it stays on the ground, fades and shrinks in the air
 
     def back_upper():
         """Seen from behind: sailor collar with its double stripe, arms swinging opposite the legs, puff sleeves."""
@@ -479,6 +486,10 @@ def girl(X, Y, pz, L, P, hair_aux):
             bf = be + np.radians(3 * back + 1.5 * A * np.sin(fl * 2 + side))  # slight wrist flick
             be += ia * (np.radians(18 if side < 0 else 35) - be)
             bf += ia * (np.radians(30 if side < 0 else -10) - bf)
+            wr = smooth(pz.raise_ * 8)                               # raise: abduct the whole arm to raise * pi (straight, no forward swing)
+            ab = np.pi * pz.raise_
+            al, fle = al * (1 - wr), fle * (1 - wr)
+            be += wr * (ab - be); bf += wr * (ab - bf)
             h0 = 1 - 0.215
             ex_, ez_ = side * 0.17 * np.sin(be), 0.17 * np.sin(al)
             eh = h0 - 0.17 * np.cos(al) * np.cos(be)
@@ -668,12 +679,14 @@ def girl(X, Y, pz, L, P, hair_aux):
             wave = pz.wave if side < 0 else 0.0
             T = T + wave * (np.array([shx - 0.2 * H + 0.035 * H * np.sin(pz.wph), yy(0.115 - 0.012 * np.cos(pz.wph))]) - T)
             S = np.array([sx, sy])
+            wr = smooth(pz.raise_ * 8)                        # raise: the hand follows an arc about the shoulder, down (0) -> out (0.5) -> overhead (1)
+            T = T + wr * (S + 0.97 * (LU + LF) * np.array([side * np.sin(np.pi * pz.raise_), np.cos(np.pi * pz.raise_)]) - T)
             d = np.hypot(*(T - S))
             d = np.clip(d, 0.06 * H, 0.97 * (LU + LF))
             dv = (T - S) / (np.hypot(*(T - S)) + 1e-6)
             a_ = (LU ** 2 - LF ** 2 + d ** 2) / (2 * d)
             perp = np.array([-dv[1], dv[0]])
-            pole = np.array([side * (0.5 + 1.0 * wave + 0.8 * arms_out), 1.0])
+            pole = np.array([side * (0.5 + 1.0 * wave + 0.8 * arms_out + 1.5 * pz.raise_), 1.0])
             if perp @ pole < 0:
                 perp = -perp
             E = S + a_ * dv + np.sqrt(max(LU ** 2 - a_ ** 2, 0)) * perp
@@ -702,10 +715,10 @@ def girl(X, Y, pz, L, P, hair_aux):
         th, flex, V = leg[side]
         hx, hyy = pj(side * HIP_SEP * cos_h, 0, hip_h, cx + hipx)
         hyy += side * tilt_h * HIP_SEP * H
-        kh, kz = hip_h - LT * np.cos(th), LT * np.sin(th)
-        ah, az = kh - LS * np.cos(th - flex), kz + LS * np.sin(th - flex)
-        kx, ky = pj((side * (HIP_SEP + FOOT_SEP) / 2 + side * 0.004 * flex) * cos_h, kz, kh, cx + walk_x + 0.5 * jx)
-        ax, ay = pj(side * FOOT_SEP * cos_h, az, ah, cx + walk_x)
+        kh, kz = hip_h - LT * np.cos(th) * np.cos(AB), LT * np.sin(th)
+        ah, az = kh - LS * np.cos(th - flex) * np.cos(AB), kz + LS * np.sin(th - flex)
+        kx, ky = pj((side * (HIP_SEP + FOOT_SEP) / 2 + side * 0.004 * flex + side * LT * np.cos(th) * np.sin(AB)) * cos_h, kz, kh, cx + walk_x + 0.5 * jx)
+        ax, ay = pj((side * FOOT_SEP + side * (LT * np.cos(th) + LS * np.cos(th - flex)) * np.sin(AB)) * cos_h, az, ah, cx + walk_x)
         fwd = np.clip(az / 0.15, 0, 1)
         d1, h1, s1 = limb(X, Y, (hx, hyy), (kx, ky), 0.036 * H, 0.025 * H)
         d2, h2, s2 = limb(X, Y, (kx, ky), (ax, ay), 0.024 * H, 0.0145 * H, bulge=0.005 * H)
@@ -725,7 +738,7 @@ def girl(X, Y, pz, L, P, hair_aux):
     # ---- skirt: pleated A-line at the waist, knee length, hem sways and flares with a lag ----
     wy, hy = yy(Y_WAIST), yy(Y_HEM)
     hem_x = cx - HEM_SWAY * H * np.sin(fl - HEM_LAG) + pz.hem_x * H
-    flare = A * abs(np.sin(fl - HEM_LAG)) + 2 * pz.flare  # intro flare is worth two walk flares: hem 0.29 H -> 0.34 H wide
+    flare = A * abs(np.sin(fl - HEM_LAG)) + 2 * pz.flare + pz.spread  # intro flare is worth two walk flares: hem 0.29 H -> 0.34 H wide
     v = np.clip((Y - wy) / (hy - wy), 0, 1)
     scx = (cx + hipx) + (hem_x - (cx + hipx)) * v ** 1.4
     hw = H * (0.070 + (0.092 + 0.025 * flare) * v ** 0.9) * (1 + 0.04 * np.sin(np.pi * v)) * SK
@@ -807,7 +820,7 @@ def check_loop(tl):
     """The frame after the last must flow into frame 0: the same rest pose (yaw compared as an angle), gait phase back on the beat, the road
     wrapped by a whole number of lamp spacings (travel ends equal to its start modulo STEP_M * 2), and identical characters."""
     a, b = tl.pose_fn(0), tl.pose_fn(tl.nf)
-    fields = ("amp", "squat", "tuck", "near", "far", "sway", "shim", "htilt", "wave", "bob", "fan", "whip", "tail_x", "flare", "hem_x", "bounce")
+    fields = ("amp", "squat", "tuck", "near", "far", "sway", "shim", "htilt", "wave", "bob", "fan", "whip", "tail_x", "flare", "hem_x", "bounce", "raise_", "spread")
     assert np.allclose([getattr(a, k) for k in fields], [getattr(b, k) for k in fields], atol=1e-3), "rest pose must return"
     assert abs(a.wph - b.wph) < 1e-6 and abs(a.t % tl.nf - b.t % tl.nf) < 1e-6, "jig phase and fidget clock must return"
     assert a.loop == b.loop == tl.nf, "Pose.loop must equal the timeline's nf"
