@@ -8,7 +8,7 @@ Rules that hold for anyone using the skill, kept small on purpose:
 
 | Case | Rule it checks |
 |---|---|
-| `video-clip-to-readme-gif` | Export meets its target's limits (GIF ≤ 10 MB, right duration), the subject reads clearly, and the loop seam is fixed or reported |
+| `video-clip-to-loop` | The clip covers the requested range, the subject reads clearly, and the loop seam is fixed or reported |
 | `web-player-reduced-motion` | Web output is real text, follows reduced motion and has the correct character aspect |
 | `douyin-link-needs-file` | No output invented from footage that couldn't be fetched; the stated cause matches what actually happened |
 | `busy-background-asks-first` | Cheap isolation runs before the 170 MB model download, which needs a yes first |
@@ -21,7 +21,7 @@ The input clips are synthetic, so the repo carries no third-party footage. Rebui
 
 Everything specific to how one person uses the skill comes from real sessions. When a user critiques, approves or picks an output, or the skill hits a failure, the agent runs `scripts/record_eval.py` (see SKILL.md §6). The case lands in `~/.claude/skill-evals/ascii-animation/<name>/` (or `$ASCII_ANIMATION_EVALS`), along with the inputs, the rejected and approved outputs as references, and an `index.jsonl` log. `record_eval.py --list` shows them.
 
-Over time, that store holds the user's actual standards: "arms close to the body during a walk", "no face features", "fits in a README". A new version of the skill has to keep passing them.
+Over time, that store holds the user's actual standards: "arms close to the body during a walk", "no face features", "stays under the size I set". A new version of the skill has to keep passing them.
 
 ## Graders
 

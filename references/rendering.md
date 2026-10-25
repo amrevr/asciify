@@ -9,7 +9,7 @@ The look copies ezascii.com's video-to-ascii mode, which the user preferred over
 ## Knobs
 | Knob | Default | Effect |
 |---|---|---|
-| `--cols` | 120 (video), 173 (rig) | Detail vs size. 80–120 for READMEs, 160+ for hero banners. |
+| `--cols` | 120 (video), 173 (rig) | Detail vs size. 80–120 for embeds, 160+ for hero banners. |
 | `--ramp` | `detailed` ` dbkhao*#MW&8%B@$` | Dense, letter-heavy texture; best in colour. `default` ` .:-=+*#%@` is airier and suits monochrome. Any custom string works, ordered light → dense. |
 | `--exponent` | 1.4 | Higher pushes mid-tones toward light glyphs, giving more contrast and a cleaner background. |
 | `--mono '#hex'` | off | One ink colour for every glyph. Smaller GIFs, and it suits terminals and minimal sites. |

@@ -62,4 +62,4 @@ Don't quietly substitute a different motion. "Jumping jacks" rendered as arm wav
 `Pose.loop` must equal `nf`; `make_pose_fn` sets it. With `--no-scene` there is no road, but keep the travel rule anyway so the same timeline works with the scene on.
 
 ## Look and size
-173 × 120 cells, 5 px each, so 865 × 600 px. A 90-frame scene-on GIF is about 8 MB. For READMEs, use `--step 2`, `--no-scene` or `--max-mb 10`. `examples/cycle.py` chains several timelines into one seamless banner; its joins are asserted to be character-identical.
+173 × 120 cells, 5 px each, so 865 × 600 px. A 90-frame scene-on GIF is about 8 MB. To cut the size, use `--step 2`, `--no-scene` or `--max-mb N`. `examples/cycle.py` chains several timelines into one seamless banner; its joins are asserted to be character-identical.

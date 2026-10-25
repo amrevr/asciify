@@ -1,6 +1,0 @@
-schema_version: "1.1"
-name: video-clip-to-readme-gif
-expected_outcome: |
-  A looping GIF made from seconds 0-3 of dance.mp4 rendered as ASCII glyphs, small enough for a GitHub README (under 10 MB), plus a Markdown/HTML snippet to embed it.
-context:
-  scaffold_script: place-files.sh

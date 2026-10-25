@@ -1,0 +1,9 @@
+%% Source for workflow-{light,dark}.svg (static, so GitHub shows no pan/zoom controls). Rebuild:
+%% bunx -p @mermaid-js/mermaid-cli mmdc -i docs/workflow.mmd -o docs/workflow-light.svg -t default -b transparent -c <(echo '{"flowchart":{"htmlLabels":false}}')  (and -t dark for workflow-dark.svg)
+flowchart LR
+    REQ["Request"] -->|video| V["video2ascii<br/>clip · crop · key"]
+    REQ -->|description| AB["rig + hand-drawn<br/>blind A/B"]
+    V --> R["Renderer<br/>loop check · sheet"]
+    AB --> R
+    R --> OUT["GIF · HTML · TXT · …"]
+    OUT -.->|feedback| EV["New eval case"]

@@ -55,6 +55,6 @@ if __name__ == "__main__":
         x, y = rng.integers(0, W), rng.integers(0, H)
         d.rectangle([x, y, x + rng.integers(6, 50), y + rng.integers(6, 50)], fill=tuple(int(c) for c in rng.integers(0, 255, 3)))
     clutter = np.asarray(clutter)
-    write(f"{HERE}/video-clip-to-readme-gif/files/dance.mp4", 6, "dance")
+    write(f"{HERE}/video-clip-to-loop/files/dance.mp4", 6, "dance")
     write(f"{HERE}/busy-background-asks-first/files/skater.mp4", 4, "skate", lambda t: busy(t, clutter))
     write(f"{HERE}/web-player-reduced-motion/files/intro.mp4", 3, "intro")

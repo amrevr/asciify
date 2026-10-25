@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: video-clip-to-loop
+expected_outcome: |
+  A looping ASCII animation of seconds 0-3 of dance.mp4 in which the dancer reads clearly, with the loop seam fixed or reported to the user.
+context:
+  scaffold_script: place-files.sh

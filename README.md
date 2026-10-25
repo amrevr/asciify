@@ -2,19 +2,14 @@
 
 A Claude Code skill that turns a video, or a description of a motion, into a looping ASCII animation using a dense colour-inked style. Examples in `examples/` are that banner's animations.
 
-Ask Claude for "the first 6 seconds of this clip as an ASCII GIF for my README" or "a looping ASCII cat stretching then curling up". The skill picks the right pipeline, makes the loop seamless, checks a contact sheet, and exports in the format your target needs.
+Ask Claude for "the first 6 seconds of this clip as a looping ASCII animation" or "a looping ASCII cat stretching then curling up". The skill picks the right pipeline, makes the loop seamless, checks a contact sheet, and exports in the format your target needs.
 
 ## How it works
 
-```mermaid
-flowchart LR
-    REQ["Request"] -->|video| V["video2ascii<br/>clip · crop · key"]
-    REQ -->|description| AB["rig + hand-drawn<br/>blind A/B"]
-    V --> R["Renderer<br/>loop check · sheet"]
-    AB --> R
-    R --> OUT["GIF · HTML · TXT · …"]
-    OUT -.->|feedback| EV["New eval case"]
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/workflow-dark.svg">
+  <img alt="Request → video (video2ascii: clip, crop, key) or description (rig + hand-drawn, blind A/B) → renderer (loop check, contact sheet) → GIF / HTML / TXT → feedback becomes a new eval case" src="docs/workflow-light.svg">
+</picture>
 
 Every path ends in the same renderer, so converted footage and invented motion share one look:
 
@@ -53,11 +48,11 @@ Ask in plain words; Claude loads the skill when the request fits. Some requests 
 
 The skill downloads only the section you name; with no range, it picks 2–6 s around the main action and tells you which. It converts that section, checks the contact sheet, and fixes what it sees:
 
-| Problem | Fix, cheapest first |
+| Problem | Fix |
 |---|---|
 | Subject lost in a busy background | `--crop`, then `--key auto`: a median background of the clip, aligned for panning, minus the subject, keeping the largest blob. If that isn't enough, `--segment` (rembg). It downloads a ~170 MB model, so the skill asks you first, every time. |
 | Visible jump when the loop restarts | Cut where the poses match, or `--pingpong`: forward then backward, with no repeated frame at the turns. |
-| File too big | `--max-mb 10` raises `--step` until the GIF fits. `--mono` and fewer `--cols` shrink it further. |
+| File too big | `--max-mb N` raises `--step` until the GIF fits under N MB. `--mono` and fewer `--cols` shrink it further. |
 | Wrong facing direction | `--mirror` |
 
 Some sites (Douyin, TikTok, Instagram) usually need your logged-in cookies. When a download fails, the skill tells you the real cause (the site, or a network block) and asks for the file. It never makes an animation from footage it couldn't fetch.
@@ -93,7 +88,6 @@ A visible seam is the most common complaint, so every exporter prints a seam sco
 
 | Target | Format | Notes |
 |---|---|---|
-| GitHub README | `.gif` | Kept under ~10 MB. Embed with `<img src="banner.gif" width="100%">`. |
 | Website | `.html` | A marked paste block: a `<pre>` plus a scoped script. It follows `prefers-reduced-motion` live and pauses offscreen. |
 | Your own component | `.json` | Frames as strings, plus per-cell colours unless the export is monochrome. |
 | Terminal | `.txt` | Frames separated by form-feed lines. |
@@ -104,7 +98,7 @@ A visible seam is the most common complaint, so every exporter prints a seam sco
 Claude runs these for you, but each is a normal CLI (`--help` lists every option):
 
 ```bash
-uv run scripts/video2ascii.py clip.mp4 -o banner.gif --start 0 --dur 6 --cols 120 --max-mb 10 --sheet sheet.png
+uv run scripts/video2ascii.py clip.mp4 -o dance.gif --start 0 --dur 6 --cols 120 --sheet sheet.png
 uv run scripts/video2ascii.py https://… -o about.html --dur 9 --mono '#e8e0d0' --pingpong
 uv run scripts/pose2ascii.py examples/twirl.py -o twirl.gif --no-scene --step 2
 uv run scripts/frames2ascii.py cat.txt -o cat.gif --sheet cat.png
@@ -139,7 +133,7 @@ The skill's tests grow out of real use rather than guesses about what users want
 
 | Case | Rule |
 |---|---|
-| `video-clip-to-readme-gif` | The export meets its target's limits, the subject reads clearly, and the seam is fixed or reported |
+| `video-clip-to-loop` | The clip covers the requested range, the subject reads clearly, and the seam is fixed or reported |
 | `web-player-reduced-motion` | Web output is real text, follows reduced motion and keeps the correct character aspect |
 | `douyin-link-needs-file` | Nothing is made from footage that couldn't be fetched, and the stated cause matches what actually happened |
 | `busy-background-asks-first` | Cheap isolation runs before the large model download, and that download needs a yes |

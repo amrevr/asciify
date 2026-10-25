@@ -1,6 +1,6 @@
 ---
 name: ascii-animation
-description: Make looping ASCII-art animations from a video (file, YouTube/TikTok/Douyin link, a clip of it) or from a plain description of a motion ("a girl twirling", "someone doing jumping jacks", "a cat stretching"), in a dense ezascii-style shaded look. Exports a GIF for a GitHub README, WebP/MP4, text frames, or a self-contained web player. Use this whenever someone wants an animated ASCII/text-art version of a clip, a moving ASCII banner or mascot, a "video to ascii" conversion, or an ASCII animation invented from words, even if they only say "make it ascii and loop it". Not for one-off static ASCII of an image or FIGlet text banners.
+description: Make looping ASCII-art animations from a video (file, YouTube/TikTok/Douyin link, a clip of it) or from a plain description of a motion ("a girl twirling", "someone doing jumping jacks", "a cat stretching"), in a dense ezascii-style shaded look. Exports GIF, WebP/MP4, text frames, or a self-contained web player. Use this whenever someone wants an animated ASCII/text-art version of a clip, a moving ASCII banner or mascot, a "video to ascii" conversion, or an ASCII animation invented from words, even if they only say "make it ascii and loop it". Not for one-off static ASCII of an image or FIGlet text banners.
 ---
 
 # ASCII animation
@@ -19,7 +19,7 @@ Run every script with `uv run ${CLAUDE_SKILL_DIR}/scripts/<name>.py …`. Each d
 - A file path or URL to a video, or "this clip" → **video path**.
 - Words describing a motion with no footage → **description path**.
 - Both (footage plus "but make her twirl at the end") → video for the footage part, a description generator for the rest, then join them (see "Joining segments").
-- Unclear which they mean, or no target given? Ask once: what it is for (README, website, terminal, chat) and roughly how long. The target decides the export format and size budget, so it's worth one question.
+- Unclear which they mean, or no target given? Ask once: what it is for (website, terminal, chat, a file to share) and roughly how long. The target decides the export format and size budget, so it's worth one question.
 
 ## 2. Video path
 
@@ -76,7 +76,6 @@ Always render a contact sheet (`--sheet`) and look at it yourself before showing
 
 | Target | Format | Notes |
 |---|---|---|
-| GitHub README | `.gif` | Keep it under ~10 MB (`--max-mb 10` raises `--step` until it fits). Embed with `<img src="…gif" width="100%">`. |
 | Website | `.html` player, or `.json` frames for an existing component | Text stays sharp and tiny. The page has a marked paste block (`<pre>` plus a scoped script) that follows `prefers-reduced-motion` live and pauses offscreen. Tell the user the text colour assumes a dark background. |
 | Terminal / plain text | `.txt` | Frames separated by form-feed lines. |
 | Chat / social | `.webp` or `.mp4` | Smaller than GIF at the same quality. |
@@ -100,7 +99,7 @@ This skill's tests come from how it's actually used, not from guesses. Whenever 
 
 | Moment | Example | What to record |
 |---|---|---|
-| **Critique** | "her arms flail too much", "the loop jumps", "too big for my README" | A regression case: the original request, its inputs, the rejected output as `--bad`, and the critique turned into a check |
+| **Critique** | "her arms flail too much", "the loop jumps", "the file's too big" | A regression case: the original request, its inputs, the rejected output as `--bad`, and the critique turned into a check |
 | **Approval** | "perfect", "ship it" | The approved output as `--good`, so later versions can be compared blind against it |
 | **A/B pick** | the user chose B | The choice and the reason they gave, so the preference is tested, not just remembered |
 | **Failure** | a download failed, a script crashed, you needed a workaround | What happened and the correct behaviour (e.g. "reports the firewall block and asks for approval") |
