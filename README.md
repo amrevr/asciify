@@ -7,27 +7,13 @@ Ask Claude for "the first 6 seconds of this clip as an ASCII GIF for my README" 
 ## How it works
 
 ```mermaid
-flowchart TD
-    REQ["Your request"] --> ROUTE{"Footage or a description?"}
-
-    ROUTE -->|"video file or URL"| V["video2ascii.py<br/>download only the clip · trim · crop"]
-    V --> BG{"Background clean?"}
-    BG -->|"yes"| R
-    BG -->|"no"| KEY["--crop · --key auto · --exponent<br/>(no download needed)"]
-    KEY -->|"clean"| R
-    KEY -->|"still busy"| ASK["Ask first, then --segment<br/>(rembg, ~170 MB model)"]
-    ASK --> R
-
-    ROUTE -->|"description"| A["A · pose rig<br/>pose2ascii.py"]
-    ROUTE -->|"description"| B["B · hand-drawn keyframes<br/>frames2ascii.py"]
-    A --> AB["ab_compare.py<br/>blind A/B page"]
-    B --> AB
-    AB -->|"you pick"| R
-
-    R["ascii_render.py<br/>shared cell renderer"] --> LOOP["Loop check + contact sheet"]
-    LOOP --> OUT["Export: GIF · WebP · MP4 · TXT · JSON · HTML player"]
-    OUT --> FB{"Your feedback"}
-    FB -->|"critique · approval · A/B pick · failure"| EVAL["record_eval.py<br/>new eval case"]
+flowchart LR
+    REQ["Request"] -->|video| V["video2ascii<br/>clip · crop · key"]
+    REQ -->|description| AB["rig + hand-drawn<br/>blind A/B"]
+    V --> R["Renderer<br/>loop check · sheet"]
+    AB --> R
+    R --> OUT["GIF · HTML · TXT · …"]
+    OUT -.->|feedback| EV["New eval case"]
 ```
 
 Every path ends in the same renderer, so converted footage and invented motion share one look:
