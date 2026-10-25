@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: description-nonhuman
+expected_outcome: |
+  Recognises the pose rig is human-only and uses hand-drawn keyframes (optionally two stylistic B variants for comparison); frames have equal row counts, the loop wraps without a duplicated frame, and an appropriate export (GIF/WebP or HTML) is produced.

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: description-human-action
+expected_outcome: |
+  Builds a jumping-jack motion from scratch (no source footage), producing two candidates — the pose rig and hand-drawn keyframes — shown side by side blind as A/B, and asks the user to choose; the delivered candidates loop cleanly and there is a terminal-friendly text export.

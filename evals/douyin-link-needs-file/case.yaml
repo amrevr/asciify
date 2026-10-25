@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: douyin-link-needs-file
+expected_outcome: |
+  Attempts the download at most once or twice, recognises Douyin needs cookies, tells the user why in plain words and asks them to provide the video file; produces no animation it did not derive from real footage.

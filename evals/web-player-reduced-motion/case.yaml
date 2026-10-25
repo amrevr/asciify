@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: web-player-reduced-motion
+expected_outcome: |
+  Produces a self-contained HTML player (or JSON frames plus a small player) rendering text in a <pre>, with a prefers-reduced-motion fallback that shows a single still frame, and rows corrected for monospace character aspect.
+context:
+  scaffold_script: place-files.sh

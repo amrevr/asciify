@@ -1,0 +1,22 @@
+[
+  {"query": "can you turn ~/Downloads/skate_trick.mov into one of those ascii animation gifs? want it as my github profile banner", "should_trigger": true},
+  {"query": "ok so theres this tiktok trend where girls walk away from the camera and do a hair flip, i want an ascii version of that looping on my personal site. no video, just make it up", "should_trigger": true},
+  {"query": "make a little text-art animation of a rocket launching for the loading screen of my CLI tool, like 30 cols wide", "should_trigger": true},
+  {"query": "https://www.youtube.com/watch?v=dQw4w9WgXcQ first 5 seconds -> ascii loop, monochrome green like a terminal", "should_trigger": true},
+  {"query": "I need the video in assets/hero.mp4 rendered as animated ASCII text on the landing page, real text not a gif, and it has to respect reduced motion", "should_trigger": true},
+  {"query": "convert this clip to ascii art frames and give me json i can feed into my react component, ~80 columns", "should_trigger": true},
+  {"query": "my discord bot needs an animated ascii mascot, a frog that blinks and ribbits. can you make it loop", "should_trigger": true},
+  {"query": "the ascii walking animation in my readme has a stutter where it loops, can you fix the seam and make her arms flail less", "should_trigger": true},
+  {"query": "video to ascii please, the douyin link is https://v.douyin.com/iAbCdEf/", "should_trigger": true},
+  {"query": "generate an ascii dance animation of two people doing a high five, export as webp for twitter", "should_trigger": true},
+  {"query": "make a figlet banner that says DEPLOYING in the slant font for my bash script", "should_trigger": false},
+  {"query": "convert this png logo to ascii art once so i can paste it in a code comment", "should_trigger": false},
+  {"query": "draw a 32x32 pixel-art sprite sheet of a knight walking for my godot game", "should_trigger": false},
+  {"query": "write a p5.js flow field generative art piece with seeded randomness", "should_trigger": false},
+  {"query": "can you make a gif from these 12 screenshots for my PR description", "should_trigger": false},
+  {"query": "trim the first 9 seconds off intro.mp4 and compress it to under 5MB with ffmpeg", "should_trigger": false},
+  {"query": "add a css typing animation to the hero headline on my site, like a terminal cursor", "should_trigger": false},
+  {"query": "build an ascii table of these benchmark results for the README", "should_trigger": false},
+  {"query": "make the spinner in my CLI use braille dots instead of the |/-\\ characters", "should_trigger": false},
+  {"query": "download this youtube video as mp3 for me https://www.youtube.com/watch?v=abc123", "should_trigger": false}
+]
